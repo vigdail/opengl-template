@@ -29,5 +29,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(gl)
 
+FetchContent_Declare(
+        glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG master
+)
+FetchContent_MakeAvailable(glm)
+
 add_executable(${EXECUTABLE_NAME} main.cpp)
-target_link_libraries(${EXECUTABLE_NAME} glfw gl libglew_static)
+target_link_libraries(${EXECUTABLE_NAME} glfw gl glm libglew_static)
