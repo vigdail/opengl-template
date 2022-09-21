@@ -15,7 +15,10 @@ void Camera::set_rotation(const glm::quat& rotation) {
 
 const glm::mat4& Camera::get_view() {
   if (is_dirty_) {
-    view_ = glm::lookAt(position_, position_ - glm::normalize(rotation_ * glm::vec3(0.0f, 0.0f, 1.0f)), glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 t = glm::translate(glm::mat4(1.0f), -position_);
+    const glm::mat4 r = glm::mat4_cast(rotation_);
+
+    view_ = r * t;
     is_dirty_ = false;
   }
   return view_;

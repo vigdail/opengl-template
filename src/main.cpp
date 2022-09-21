@@ -61,6 +61,23 @@ void key_callback(GLFWwindow* window, int key, int, int action, int) {
   }
 }
 
+void cursor_pos_callback(GLFWwindow* window, double x, double y) {
+  auto* controller = static_cast<FPSCameraController*>(glfwGetWindowUserPointer(window));
+  controller->input.mouse_position = {static_cast<float>(x), static_cast<float>(y)};
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int /* mods */) {
+  if (button != GLFW_MOUSE_BUTTON_1 || action != GLFW_PRESS) {
+    return;
+  }
+  int mode = glfwGetInputMode(window, GLFW_CURSOR);
+  if (mode == GLFW_CURSOR_DISABLED) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  } else {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  }
+}
+
 int main() {
   if (glfwInit() == GLFW_FALSE) {
     std::cerr << "Unable to initialize GLFW\n";
@@ -81,6 +98,10 @@ int main() {
     return EXIT_FAILURE;
   }
   glfwMakeContextCurrent(window);
+
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCursorPosCallback(window, cursor_pos_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
 
   gl::initialize();
 
@@ -106,7 +127,6 @@ int main() {
   FPSCameraController controller(&camera);
 
   glfwSetWindowUserPointer(window, &controller);
-  glfwSetKeyCallback(window, key_callback);
 
   vao->bind();
   shader->use();
@@ -114,8 +134,8 @@ int main() {
   double time_stamp = glfwGetTime();
 
   while (!glfwWindowShouldClose(window)) {
-    glfwPollEvents();
     glfwSwapBuffers(window);
+    glfwPollEvents();
 
     const double new_time_stamp = glfwGetTime();
     const auto delta_seconds = static_cast<float>(new_time_stamp - time_stamp);

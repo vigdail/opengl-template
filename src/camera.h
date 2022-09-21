@@ -37,13 +37,18 @@ class FPSCameraController {
     float acceleration = 100.0f;
     float max_speed = 5.0f;
 
-    const auto mouse_delta = input.mouse_position - prev_mouse_position_;
-    prev_mouse_position_ = input.mouse_position;
+    if (!is_first_) {
+      const auto mouse_delta = input.mouse_position - prev_mouse_position_;
 
-    const float mouse_speed = 10.0f;
-    const glm::quat delta_quat = glm::quat(
-        glm::vec3(mouse_speed * mouse_delta.y, mouse_speed * mouse_delta.x, 0.0f));
-    camera_->set_rotation(glm::normalize(delta_quat * camera_->get_rotation()));
+      const float mouse_speed = 0.1f * delta_time;
+      const glm::quat delta_quat = glm::quat(
+          glm::vec3(mouse_speed * mouse_delta.y, mouse_speed * mouse_delta.x, 0.0f));
+      camera_->set_rotation(glm::normalize(delta_quat * camera_->get_rotation()));
+      set_up_vector(glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+    is_first_ = false;
+
+    prev_mouse_position_ = input.mouse_position;
 
     const glm::mat4 v = glm::mat4_cast(camera_->get_rotation());
     const glm::vec3 forward = -glm::vec3(v[0][2], v[1][2], v[2][2]);
@@ -72,7 +77,16 @@ class FPSCameraController {
   Input input{};
 
  private:
+  void set_up_vector(const glm::vec3 up) {
+    const glm::mat4 view = camera_->get_view();
+    const glm::vec3 dir = -glm::vec3(view[0][2], view[1][2], view[2][2]);
+    const auto& position = camera_->get_position();
+    camera_->set_rotation(glm::lookAt(position, position + dir, up));
+  }
+
+ private:
   Camera* camera_;
   glm::vec2 prev_mouse_position_{};
   glm::vec3 move_speed_{};
+  bool is_first_{true};
 };
