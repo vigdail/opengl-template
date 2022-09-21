@@ -12,7 +12,6 @@ std::shared_ptr<gl::texture_2d> load_texture(const std::filesystem::path& path) 
   int channels = 0;
   unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 
-  std::cout << width << "x" << height << ": " << channels << '\n';
   std::shared_ptr<gl::texture_2d> texture(new gl::texture_2d());
   texture->set_storage(1, GL_RGBA8, width, height);
   texture->set_sub_image(0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
