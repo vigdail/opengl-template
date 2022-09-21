@@ -2,10 +2,13 @@
 
 uniform mat4 view_proj;
 
-vec2 vertices[3] = vec2[](
-vec2(0.0, 0.5),
+vec2 vertices[6] = vec2[](
 vec2(-0.5, -0.5),
-vec2(0.5, -0.5)
+vec2(-0.5, 0.5),
+vec2(0.5, 0.5),
+vec2(0.5, 0.5),
+vec2(0.5, -0.5),
+vec2(-0.5, -0.5)
 );
 
 void main() {

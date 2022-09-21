@@ -7,6 +7,9 @@
 #include <gl/auxiliary/glm_uniforms.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+#include "camera.h"
 
 constexpr int WINDOW_WIDTH = 1280;
 constexpr int WINDOW_HEIGHT = 720;
@@ -75,9 +78,16 @@ int main() {
   auto shader = load_shader("../assets/shaders/triangle.vert", "../assets/shaders/triangle.frag");
   std::shared_ptr<gl::vertex_array> vao(new gl::vertex_array);
 
-  const glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   const glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float) WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 1000.0f);
+  Camera camera(proj);
+  const auto camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
+  const auto target_position = glm::vec3(0.5f, 0.0f, 0.0f);
+  const auto dir = glm::normalize(camera_position - target_position);
+  camera.set_position(camera_position);
+  camera.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
+  const auto& view = camera.get_view();
   const glm::mat4 view_proj = proj * view;
+
   vao->bind();
   shader->use();
   shader->set_uniform(shader->uniform_location("view_proj"), view_proj);
@@ -89,7 +99,7 @@ int main() {
     gl::set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
     gl::clear(GL_COLOR_BUFFER_BIT);
 
-    gl::draw_arrays(GL_TRIANGLES, 0, 3);
+    gl::draw_arrays(GL_TRIANGLES, 0, 6);
   }
 
   glfwDestroyWindow(window);
