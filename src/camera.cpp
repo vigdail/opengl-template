@@ -24,3 +24,9 @@ const glm::mat4& Camera::get_view() {
 const glm::mat4& Camera::get_projection() const {
   return projection_;
 }
+const glm::vec3& Camera::get_position() const {
+  return position_;
+}
+const glm::quat& Camera::get_rotation() const {
+  return rotation_;
+}

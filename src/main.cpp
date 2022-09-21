@@ -1,5 +1,4 @@
-#include <iostream>
-#include <memory>
+#include "camera.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -9,7 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include "camera.h"
+#include <iostream>
+#include <memory>
 
 constexpr int WINDOW_WIDTH = 1280;
 constexpr int WINDOW_HEIGHT = 720;
@@ -42,6 +42,23 @@ std::shared_ptr<gl::program> load_shader(const char* vert_path, const char* frag
   }
 
   return program;
+}
+
+void key_callback(GLFWwindow* window, int key, int, int action, int) {
+  auto* controller = static_cast<FPSCameraController*>(glfwGetWindowUserPointer(window));
+  bool is_pressed = action != GLFW_RELEASE;
+  if (key == GLFW_KEY_W) {
+    controller->input.forward = is_pressed;
+  }
+  if (key == GLFW_KEY_S) {
+    controller->input.backward = is_pressed;
+  }
+  if (key == GLFW_KEY_A) {
+    controller->input.left = is_pressed;
+  }
+  if (key == GLFW_KEY_D) {
+    controller->input.right = is_pressed;
+  }
 }
 
 int main() {
@@ -81,20 +98,33 @@ int main() {
   const glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float) WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 1000.0f);
   Camera camera(proj);
   const auto camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
-  const auto target_position = glm::vec3(0.5f, 0.0f, 0.0f);
+  const auto target_position = glm::vec3(0.0f, 0.0f, 0.0f);
   const auto dir = glm::normalize(camera_position - target_position);
   camera.set_position(camera_position);
   camera.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
-  const auto& view = camera.get_view();
-  const glm::mat4 view_proj = proj * view;
+
+  FPSCameraController controller(&camera);
+
+  glfwSetWindowUserPointer(window, &controller);
+  glfwSetKeyCallback(window, key_callback);
 
   vao->bind();
   shader->use();
-  shader->set_uniform(shader->uniform_location("view_proj"), view_proj);
+
+  double time_stamp = glfwGetTime();
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
     glfwSwapBuffers(window);
+
+    const double new_time_stamp = glfwGetTime();
+    const auto delta_seconds = static_cast<float>(new_time_stamp - time_stamp);
+    time_stamp = new_time_stamp;
+
+    controller.update(delta_seconds);
+    const auto& view = camera.get_view();
+    const glm::mat4 view_proj = proj * view;
+    shader->set_uniform(shader->uniform_location("view_proj"), view_proj);
 
     gl::set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
     gl::clear(GL_COLOR_BUFFER_BIT);
