@@ -36,5 +36,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-add_executable(${EXECUTABLE_NAME} src/main.cpp src/camera.cpp src/camera.h)
+include_directories(vendor/stb)
+
+add_executable(${EXECUTABLE_NAME} src/main.cpp src/camera.cpp src/camera.h src/shader.h src/shader.cpp src/texture.h src/texture.cpp)
 target_link_libraries(${EXECUTABLE_NAME} glfw gl glm libglew_static)

@@ -1,4 +1,6 @@
 #include "camera.h"
+#include "shader.h"
+#include "texture.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -20,29 +22,6 @@ void debug_message_callback(const gl::debug_log& log) {
   std::cerr << log.message << std::endl;
 }
 #endif
-
-std::shared_ptr<gl::program> load_shader(const char* vert_path, const char* frag_path) {
-  gl::shader vert(GL_VERTEX_SHADER);
-  vert.load_source(vert_path);
-  if (!vert.compile()) {
-    std::cerr << vert.info_log() << '\n';
-  }
-
-  gl::shader frag(GL_FRAGMENT_SHADER);
-  frag.load_source(frag_path);
-  if (!frag.compile()) {
-    std::cerr << frag.info_log() << '\n';
-  }
-
-  std::shared_ptr<gl::program> program(new gl::program);
-  program->attach_shader(vert);
-  program->attach_shader(frag);
-  if (!program->link()) {
-    std::cerr << program->info_log() << '\n';
-  }
-
-  return program;
-}
 
 void key_callback(GLFWwindow* window, int key, int, int action, int) {
   auto* controller = static_cast<FPSCameraController*>(glfwGetWindowUserPointer(window));
@@ -114,6 +93,7 @@ int main() {
 #endif
 
   auto shader = load_shader("../assets/shaders/triangle.vert", "../assets/shaders/triangle.frag");
+  auto texture = load_texture("../assets/textures/texture.png");
   std::shared_ptr<gl::vertex_array> vao(new gl::vertex_array);
 
   const glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float) WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 1000.0f);
@@ -129,7 +109,9 @@ int main() {
   glfwSetWindowUserPointer(window, &controller);
 
   vao->bind();
+  texture->bind_unit(0);
   shader->use();
+  shader->set_uniform(shader->uniform_location("u_texture"), 0);
 
   double time_stamp = glfwGetTime();
 
