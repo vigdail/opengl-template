@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "texture.h"
+#include "window.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -23,68 +24,8 @@ void debug_message_callback(const gl::debug_log& log) {
 }
 #endif
 
-void key_callback(GLFWwindow* window, int key, int, int action, int) {
-  auto* controller = static_cast<FpsCameraController*>(glfwGetWindowUserPointer(window));
-  bool is_pressed = action != GLFW_RELEASE;
-  if (key == GLFW_KEY_W) {
-    controller->input.forward = is_pressed;
-  }
-  if (key == GLFW_KEY_S) {
-    controller->input.backward = is_pressed;
-  }
-  if (key == GLFW_KEY_A) {
-    controller->input.left = is_pressed;
-  }
-  if (key == GLFW_KEY_D) {
-    controller->input.right = is_pressed;
-  }
-
-  if (key == GLFW_KEY_ESCAPE) {
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-  }
-}
-
-void cursor_pos_callback(GLFWwindow* window, double x, double y) {
-  auto* controller = static_cast<FpsCameraController*>(glfwGetWindowUserPointer(window));
-  controller->input.mouse_position = {static_cast<float>(x), static_cast<float>(y)};
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int /* mods */) {
-  if (button != GLFW_MOUSE_BUTTON_1 || action != GLFW_PRESS) {
-    return;
-  }
-  int mode = glfwGetInputMode(window, GLFW_CURSOR);
-  if (mode == GLFW_CURSOR_DISABLED) {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-  } else {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  }
-}
-
 int main() {
-  if (glfwInit() == GLFW_FALSE) {
-    std::cerr << "Unable to initialize GLFW\n";
-    return EXIT_FAILURE;
-  }
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-  GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, nullptr, nullptr);
-  if (!window) {
-    const char* buff[1024];
-    glfwGetError(buff);
-    std::cerr << "Unable to create window: " << *buff;
-    glfwTerminate();
-    return EXIT_FAILURE;
-  }
-  glfwMakeContextCurrent(window);
-
-  glfwSetKeyCallback(window, key_callback);
-  glfwSetCursorPosCallback(window, cursor_pos_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  Window window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 
   gl::initialize();
 
@@ -110,18 +51,55 @@ int main() {
 
   FpsCameraController controller(&camera);
 
-  glfwSetWindowUserPointer(window, &controller);
-
   vao->bind();
   texture->bind_unit(0);
   shader->use();
   shader->set_uniform(shader->uniform_location("u_texture"), 0);
 
-  double time_stamp = glfwGetTime();
+  auto handler = [&controller, &window](Event* event) {
+    switch (event->type) {
+      case EventType::Key: {
+        const auto* e = static_cast<KeyEvent*>(event);
+        bool is_pressed = e->action == KeyAction::Pressed;
+        if (e->key_code == GLFW_KEY_W) {
+          controller.input.forward = is_pressed;
+        }
+        if (e->key_code == GLFW_KEY_S) {
+          controller.input.backward = is_pressed;
+        }
+        if (e->key_code == GLFW_KEY_A) {
+          controller.input.left = is_pressed;
+        }
+        if (e->key_code == GLFW_KEY_D) {
+          controller.input.right = is_pressed;
+        }
+        if (e->key_code == GLFW_KEY_ESCAPE) {
+          window.close();
+        }
+        break;
+      }
+      case EventType::MouseMove: {
+        const auto* e = static_cast<MouseMoveEvent*>(event);
+        controller.input.mouse_position = {e->x, e->y};
+        break;
+      }
+      case EventType::MouseButton: {
+        const auto* e = static_cast<MouseButtonEvent*>(event);
+        if (e->button == GLFW_MOUSE_BUTTON_1 && e->action == KeyAction::Pressed) {
+          window.toggle_cursor();
+        }
+        break;
+      }
+      default:
+        throw std::runtime_error(std::string("Unknown event type: ") + std::to_string((int)event->type));
+    }
+  };
+  window.set_event_handler(handler);
 
-  while (!glfwWindowShouldClose(window)) {
-    glfwSwapBuffers(window);
-    glfwPollEvents();
+  double time_stamp = glfwGetTime();
+  while (!window.should_close()) {
+    window.swap();
+    window.pool_events();
 
     const double new_time_stamp = glfwGetTime();
     const auto delta_seconds = static_cast<float>(new_time_stamp - time_stamp);
@@ -137,9 +115,6 @@ int main() {
 
     gl::draw_arrays(GL_TRIANGLES, 0, 6);
   }
-
-  glfwDestroyWindow(window);
-  glfwTerminate();
 
   return EXIT_SUCCESS;
 }
