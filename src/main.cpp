@@ -24,7 +24,7 @@ void debug_message_callback(const gl::debug_log& log) {
 #endif
 
 void key_callback(GLFWwindow* window, int key, int, int action, int) {
-  auto* controller = static_cast<FPSCameraController*>(glfwGetWindowUserPointer(window));
+  auto* controller = static_cast<FpsCameraController*>(glfwGetWindowUserPointer(window));
   bool is_pressed = action != GLFW_RELEASE;
   if (key == GLFW_KEY_W) {
     controller->input.forward = is_pressed;
@@ -45,7 +45,7 @@ void key_callback(GLFWwindow* window, int key, int, int action, int) {
 }
 
 void cursor_pos_callback(GLFWwindow* window, double x, double y) {
-  auto* controller = static_cast<FPSCameraController*>(glfwGetWindowUserPointer(window));
+  auto* controller = static_cast<FpsCameraController*>(glfwGetWindowUserPointer(window));
   controller->input.mouse_position = {static_cast<float>(x), static_cast<float>(y)};
 }
 
@@ -108,7 +108,7 @@ int main() {
   camera.set_position(camera_position);
   camera.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
 
-  FPSCameraController controller(&camera);
+  FpsCameraController controller(&camera);
 
   glfwSetWindowUserPointer(window, &controller);
 
