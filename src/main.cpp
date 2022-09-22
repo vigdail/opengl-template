@@ -38,6 +38,10 @@ void key_callback(GLFWwindow* window, int key, int, int action, int) {
   if (key == GLFW_KEY_D) {
     controller->input.right = is_pressed;
   }
+
+  if (key == GLFW_KEY_ESCAPE) {
+    glfwSetWindowShouldClose(window, GLFW_TRUE);
+  }
 }
 
 void cursor_pos_callback(GLFWwindow* window, double x, double y) {
