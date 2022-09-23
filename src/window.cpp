@@ -28,20 +28,20 @@ Window::Window(std::string_view title, uint32_t width, uint32_t height) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
     KeyAction button_action = action == GLFW_PRESS ? KeyAction::Pressed : KeyAction::Released;
     MouseButtonEvent event{button, button_action};
-    self->handler_(&event);
+    self->handler_(event);
   });
 
   glfwSetKeyCallback(window_, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-    KeyAction button_action = action == GLFW_PRESS ? KeyAction::Pressed : KeyAction::Released;
+    KeyAction button_action = action == GLFW_RELEASE ? KeyAction::Released : KeyAction::Pressed;
     KeyEvent event{key, button_action};
-    self->handler_(&event);
+    self->handler_(event);
   });
 
   glfwSetCursorPosCallback(window_, [](GLFWwindow* w, double x, double y) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
     MouseMoveEvent event{static_cast<float>(x), static_cast<float>(y)};
-    self->handler_(&event);
+    self->handler_(event);
   });
 }
 

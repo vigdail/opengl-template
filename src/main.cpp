@@ -24,6 +24,13 @@ void debug_message_callback(const gl::debug_log& log) {
 }
 #endif
 
+template<typename... Ts>
+struct Overload : Ts... {
+  using Ts::operator()...;
+};
+template<class... Ts>
+Overload(Ts...) -> Overload<Ts...>;
+
 int main() {
   Window window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -56,43 +63,36 @@ int main() {
   shader->use();
   shader->set_uniform(shader->uniform_location("u_texture"), 0);
 
-  auto handler = [&controller, &window](Event* event) {
-    switch (event->type) {
-      case EventType::Key: {
-        const auto* e = static_cast<KeyEvent*>(event);
-        bool is_pressed = e->action == KeyAction::Pressed;
-        if (e->key_code == GLFW_KEY_W) {
+  auto event_handlers = Overload{
+      [&](const KeyEvent& event) {
+        bool is_pressed = event.action == KeyAction::Pressed;
+        if (event.key_code == GLFW_KEY_W) {
           controller.input.forward = is_pressed;
         }
-        if (e->key_code == GLFW_KEY_S) {
+        if (event.key_code == GLFW_KEY_S) {
           controller.input.backward = is_pressed;
         }
-        if (e->key_code == GLFW_KEY_A) {
+        if (event.key_code == GLFW_KEY_A) {
           controller.input.left = is_pressed;
         }
-        if (e->key_code == GLFW_KEY_D) {
+        if (event.key_code == GLFW_KEY_D) {
           controller.input.right = is_pressed;
         }
-        if (e->key_code == GLFW_KEY_ESCAPE) {
+        if (event.key_code == GLFW_KEY_ESCAPE) {
           window.close();
         }
-        break;
-      }
-      case EventType::MouseMove: {
-        const auto* e = static_cast<MouseMoveEvent*>(event);
-        controller.input.mouse_position = {e->x, e->y};
-        break;
-      }
-      case EventType::MouseButton: {
-        const auto* e = static_cast<MouseButtonEvent*>(event);
-        if (e->button == GLFW_MOUSE_BUTTON_1 && e->action == KeyAction::Pressed) {
+      },
+      [&](const MouseMoveEvent& event) {
+        controller.input.mouse_position = {event.x, event.y};
+      },
+      [&](const MouseButtonEvent& event) {
+        if (event.button == GLFW_MOUSE_BUTTON_1 && event.action == KeyAction::Pressed) {
           window.toggle_cursor();
         }
-        break;
-      }
-      default:
-        throw std::runtime_error(std::string("Unknown event type: ") + std::to_string((int)event->type));
-    }
+      },
+  };
+  auto handler = [&event_handlers](const WindowEvent& event) {
+    std::visit(event_handlers, event);
   };
   window.set_event_handler(handler);
 
