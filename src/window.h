@@ -10,28 +10,27 @@ enum class KeyAction {
   Repeat,
 };
 
-class KeyEvent {
- public:
-  KeyEvent(int key_code, KeyAction action) : key_code{key_code}, action{action} {}
+struct KeyEvent {
   const int key_code;
   const KeyAction action;
 };
 
-class MouseButtonEvent {
- public:
-  MouseButtonEvent(int button, KeyAction action) : button{button}, action{action} {}
+struct MouseButtonEvent {
   const int button;
   const KeyAction action;
 };
 
-class MouseMoveEvent {
- public:
-  MouseMoveEvent(float x, float y) : x{x}, y{y} {}
+struct MouseMoveEvent {
   const float x;
   const float y;
 };
 
-using WindowEvent = std::variant<KeyEvent, MouseMoveEvent, MouseButtonEvent>;
+struct WindowResizeEvent {
+  const uint32_t width;
+  const uint32_t height;
+};
+
+using WindowEvent = std::variant<KeyEvent, MouseMoveEvent, MouseButtonEvent, WindowResizeEvent>;
 
 // TODO: Proper names
 template<typename T, typename E>

@@ -52,6 +52,11 @@ Window::Window(std::string_view title, uint32_t width, uint32_t height) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
     self->handler_(MouseMoveEvent{static_cast<float>(x), static_cast<float>(y)});
   });
+
+  glfwSetWindowSizeCallback(window_, [](GLFWwindow* w, int x, int y) {
+    auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
+    self->handler_(WindowResizeEvent{static_cast<uint32_t>(x), static_cast<uint32_t>(y)});
+  });
 }
 
 void Window::swap() {
