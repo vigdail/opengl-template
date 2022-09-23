@@ -1,9 +1,9 @@
+#include "application.h"
 #include "camera.h"
 #include "shader.h"
 #include "texture.h"
 #include "window.h"
 
-#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <gl/all.hpp>
 #include <gl/auxiliary/glm_uniforms.hpp>
@@ -11,120 +11,35 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-#include <iostream>
 #include <memory>
 
-constexpr int WINDOW_WIDTH = 1280;
-constexpr int WINDOW_HEIGHT = 720;
-constexpr const char* WINDOW_TITLE = "OpenGL Template";
-
-#ifndef NDEBUG
-void debug_message_callback(const gl::debug_log& log) {
-  std::cerr << log.message << std::endl;
-}
-#endif
-
-// TODO: Proper names
-template<typename T, typename E>
-class Handler {
+class ExampleLayer : public Layer {
  public:
-  Handler(std::function<void(const T&)> function) : function_{function} {}
+  ExampleLayer(float camera_aspect_ratio) : camera_{glm::perspective(glm::radians(60.0f), camera_aspect_ratio, 0.01f, 1000.0f)},
+                                            controller_{&camera_},
+                                            shader_{load_shader("../assets/shaders/triangle.vert", "../assets/shaders/triangle.frag")},
+                                            vao_{new gl::vertex_array},
+                                            texture_{load_texture("../assets/textures/texture.png")} {}
 
-  void operator()(const E& event) {
-    std::visit([&](const auto& e) {
-      using Event = std::decay_t<decltype(e)>;
-      if constexpr (std::is_same<T, Event>()) {
-        function_(e);
-      }
-    },
-               event);
+  void on_attach() override {
+    const auto camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
+    const auto target_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    const auto dir = glm::normalize(camera_position - target_position);
+    camera_.set_position(camera_position);
+    camera_.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
+
+    vao_->bind();
+    texture_->bind_unit(0);
+    shader_->use();
+    shader_->set_uniform(shader_->uniform_location("u_texture"), 0);
   }
 
- private:
-  std::function<void(const T&)> function_;
-};
-
-int main() {
-  Window window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-  gl::initialize();
-
-#ifndef NDEBUG
-  gl::set_debug_output_enabled(true);
-  gl::set_synchronous_debug_output_enabled(true);
-  gl::set_debug_log_callback(debug_message_callback);
-  gl::set_debug_log_filters(GL_DONT_CARE, GL_DONT_CARE, {},
-                            GL_DEBUG_SEVERITY_NOTIFICATION, false);
-#endif
-
-  auto shader = load_shader("../assets/shaders/triangle.vert", "../assets/shaders/triangle.frag");
-  auto texture = load_texture("../assets/textures/texture.png");
-  std::shared_ptr<gl::vertex_array> vao(new gl::vertex_array);
-
-  const glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float) WINDOW_WIDTH / WINDOW_HEIGHT, 0.01f, 1000.0f);
-  Camera camera(proj);
-  const auto camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
-  const auto target_position = glm::vec3(0.0f, 0.0f, 0.0f);
-  const auto dir = glm::normalize(camera_position - target_position);
-  camera.set_position(camera_position);
-  camera.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
-
-  FpsCameraController controller(&camera);
-
-  vao->bind();
-  texture->bind_unit(0);
-  shader->use();
-  shader->set_uniform(shader->uniform_location("u_texture"), 0);
-
-  auto key_handler = Handler<KeyEvent, WindowEvent>([&](const auto& event) {
-    bool is_pressed = event.action == KeyAction::Pressed || event.action == KeyAction::Repeat;
-    if (event.key_code == GLFW_KEY_W) {
-      controller.input.forward = is_pressed;
-    }
-    if (event.key_code == GLFW_KEY_S) {
-      controller.input.backward = is_pressed;
-    }
-    if (event.key_code == GLFW_KEY_A) {
-      controller.input.left = is_pressed;
-    }
-    if (event.key_code == GLFW_KEY_D) {
-      controller.input.right = is_pressed;
-    }
-    if (event.key_code == GLFW_KEY_ESCAPE) {
-      window.close();
-    }
-  });
-
-  auto mouse_move_handler = Handler<MouseMoveEvent, WindowEvent>([&](const auto& event) {
-    controller.input.mouse_position = {event.x, event.y};
-  });
-
-  auto mouse_button_handler = Handler<MouseButtonEvent, WindowEvent>([&](const auto& event) {
-    if (event.button == GLFW_MOUSE_BUTTON_1 && event.action == KeyAction::Pressed) {
-      window.toggle_cursor();
-    }
-  });
-
-  auto handler = [&](const WindowEvent& event) {
-    mouse_move_handler(event);
-    key_handler(event);
-    mouse_button_handler(event);
-  };
-  window.set_event_handler(handler);
-
-  double time_stamp = glfwGetTime();
-  while (!window.should_close()) {
-    window.swap();
-    window.pool_events();
-
-    const double new_time_stamp = glfwGetTime();
-    const auto delta_seconds = static_cast<float>(new_time_stamp - time_stamp);
-    time_stamp = new_time_stamp;
-
-    controller.update(delta_seconds);
-    const auto& view = camera.get_view();
+  void on_update(float delta_seconds) override {
+    controller_.update(delta_seconds);
+    const auto& view = camera_.get_view();
+    const auto& proj = camera_.get_projection();
     const glm::mat4 view_proj = proj * view;
-    shader->set_uniform(shader->uniform_location("view_proj"), view_proj);
+    shader_->set_uniform(shader_->uniform_location("view_proj"), view_proj);
 
     gl::set_clear_color({0.0f, 0.0f, 0.0f, 1.0f});
     gl::clear(GL_COLOR_BUFFER_BIT);
@@ -132,5 +47,42 @@ int main() {
     gl::draw_arrays(GL_TRIANGLES, 0, 6);
   }
 
-  return EXIT_SUCCESS;
+  void on_event(const WindowEvent& event) override {
+    auto key_handler = Handler<KeyEvent, WindowEvent>([&](const auto& event) {
+      bool is_pressed = event.action == KeyAction::Pressed || event.action == KeyAction::Repeat;
+      if (event.key_code == GLFW_KEY_W) {
+        controller_.input.forward = is_pressed;
+      }
+      if (event.key_code == GLFW_KEY_S) {
+        controller_.input.backward = is_pressed;
+      }
+      if (event.key_code == GLFW_KEY_A) {
+        controller_.input.left = is_pressed;
+      }
+      if (event.key_code == GLFW_KEY_D) {
+        controller_.input.right = is_pressed;
+      }
+    });
+
+    auto mouse_move_handler = Handler<MouseMoveEvent, WindowEvent>([&](const auto& event) {
+      controller_.input.mouse_position = {event.x, event.y};
+    });
+
+    mouse_move_handler(event);
+    key_handler(event);
+  }
+
+ private:
+  Camera camera_;
+  FpsCameraController controller_;
+  std::shared_ptr<gl::program> shader_;
+  std::shared_ptr<gl::vertex_array> vao_;
+  std::shared_ptr<gl::texture_2d> texture_;
+};
+
+int main() {
+  Application app("OpenGL", 1280, 720);
+  app.push_layer(std::make_unique<ExampleLayer>(1280.0f / 720.0f));
+  app.run();
+  return 0;
 }
