@@ -77,7 +77,7 @@ int main() {
   shader->set_uniform(shader->uniform_location("u_texture"), 0);
 
   auto key_handler = Handler<KeyEvent, WindowEvent>([&](const auto& event) {
-    bool is_pressed = event.action == KeyAction::Pressed;
+    bool is_pressed = event.action == KeyAction::Pressed || event.action == KeyAction::Repeat;
     if (event.key_code == GLFW_KEY_W) {
       controller.input.forward = is_pressed;
     }

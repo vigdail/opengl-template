@@ -4,6 +4,18 @@
 
 #include <stdexcept>
 
+KeyAction key_action(int glfw_action) {
+  switch (glfw_action) {
+    case GLFW_PRESS:
+      return KeyAction::Pressed;
+    case GLFW_RELEASE:
+      return KeyAction::Released;
+    case GLFW_REPEAT:
+      return KeyAction::Repeat;
+  }
+  throw std::runtime_error("Unknown Key Action: " + std::to_string(glfw_action));
+}
+
 Window::Window(std::string_view title, uint32_t width, uint32_t height) {
   if (glfwInit() == GLFW_FALSE) {
     throw std::runtime_error("Unable to initialize GLFW");
@@ -26,22 +38,19 @@ Window::Window(std::string_view title, uint32_t width, uint32_t height) {
   glfwSetWindowUserPointer(window_, this);
   glfwSetMouseButtonCallback(window_, [](GLFWwindow* w, int button, int action, int mods) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-    KeyAction button_action = action == GLFW_PRESS ? KeyAction::Pressed : KeyAction::Released;
-    MouseButtonEvent event{button, button_action};
-    self->handler_(event);
+    KeyAction button_action = key_action(action);
+    self->handler_(MouseButtonEvent{button, button_action});
   });
 
   glfwSetKeyCallback(window_, [](GLFWwindow* w, int key, int scancode, int action, int mods) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-    KeyAction button_action = action == GLFW_RELEASE ? KeyAction::Released : KeyAction::Pressed;
-    KeyEvent event{key, button_action};
-    self->handler_(event);
+    KeyAction button_action = key_action(action);
+    self->handler_(KeyEvent{key, button_action});
   });
 
   glfwSetCursorPosCallback(window_, [](GLFWwindow* w, double x, double y) {
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(w));
-    MouseMoveEvent event{static_cast<float>(x), static_cast<float>(y)};
-    self->handler_(event);
+    self->handler_(MouseMoveEvent{static_cast<float>(x), static_cast<float>(y)});
   });
 }
 
@@ -69,10 +78,10 @@ void Window::close() {
   glfwSetWindowShouldClose(window_, GLFW_TRUE);
 }
 void Window::hide_cursor() {
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 void Window::show_cursor() {
-    glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 void Window::toggle_cursor() {
   int mode = glfwGetInputMode(window_, GLFW_CURSOR);

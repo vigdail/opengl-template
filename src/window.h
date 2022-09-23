@@ -7,7 +7,9 @@
 enum class KeyAction {
   Pressed,
   Released,
+  Repeat,
 };
+
 class KeyEvent {
  public:
   KeyEvent(int key_code, KeyAction action) : key_code{key_code}, action{action} {}
