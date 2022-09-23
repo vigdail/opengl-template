@@ -24,12 +24,25 @@ void debug_message_callback(const gl::debug_log& log) {
 }
 #endif
 
-template<typename... Ts>
-struct Overload : Ts... {
-  using Ts::operator()...;
+// TODO: Proper names
+template<typename T, typename E>
+class Handler {
+ public:
+  Handler(std::function<void(const T&)> function) : function_{function} {}
+
+  void operator()(const E& event) {
+    std::visit([&](const auto& e) {
+      using Event = std::decay_t<decltype(e)>;
+      if constexpr (std::is_same<T, Event>()) {
+        function_(e);
+      }
+    },
+               event);
+  }
+
+ private:
+  std::function<void(const T&)> function_;
 };
-template<class... Ts>
-Overload(Ts...) -> Overload<Ts...>;
 
 int main() {
   Window window(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -63,36 +76,39 @@ int main() {
   shader->use();
   shader->set_uniform(shader->uniform_location("u_texture"), 0);
 
-  auto event_handlers = Overload{
-      [&](const KeyEvent& event) {
-        bool is_pressed = event.action == KeyAction::Pressed;
-        if (event.key_code == GLFW_KEY_W) {
-          controller.input.forward = is_pressed;
-        }
-        if (event.key_code == GLFW_KEY_S) {
-          controller.input.backward = is_pressed;
-        }
-        if (event.key_code == GLFW_KEY_A) {
-          controller.input.left = is_pressed;
-        }
-        if (event.key_code == GLFW_KEY_D) {
-          controller.input.right = is_pressed;
-        }
-        if (event.key_code == GLFW_KEY_ESCAPE) {
-          window.close();
-        }
-      },
-      [&](const MouseMoveEvent& event) {
-        controller.input.mouse_position = {event.x, event.y};
-      },
-      [&](const MouseButtonEvent& event) {
-        if (event.button == GLFW_MOUSE_BUTTON_1 && event.action == KeyAction::Pressed) {
-          window.toggle_cursor();
-        }
-      },
-  };
-  auto handler = [&event_handlers](const WindowEvent& event) {
-    std::visit(event_handlers, event);
+  auto key_handler = Handler<KeyEvent, WindowEvent>([&](const auto& event) {
+    bool is_pressed = event.action == KeyAction::Pressed;
+    if (event.key_code == GLFW_KEY_W) {
+      controller.input.forward = is_pressed;
+    }
+    if (event.key_code == GLFW_KEY_S) {
+      controller.input.backward = is_pressed;
+    }
+    if (event.key_code == GLFW_KEY_A) {
+      controller.input.left = is_pressed;
+    }
+    if (event.key_code == GLFW_KEY_D) {
+      controller.input.right = is_pressed;
+    }
+    if (event.key_code == GLFW_KEY_ESCAPE) {
+      window.close();
+    }
+  });
+
+  auto mouse_move_handler = Handler<MouseMoveEvent, WindowEvent>([&](const auto& event) {
+    controller.input.mouse_position = {event.x, event.y};
+  });
+
+  auto mouse_button_handler = Handler<MouseButtonEvent, WindowEvent>([&](const auto& event) {
+    if (event.button == GLFW_MOUSE_BUTTON_1 && event.action == KeyAction::Pressed) {
+      window.toggle_cursor();
+    }
+  });
+
+  auto handler = [&](const WindowEvent& event) {
+    mouse_move_handler(event);
+    key_handler(event);
+    mouse_button_handler(event);
   };
   window.set_event_handler(handler);
 
