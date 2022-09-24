@@ -10,6 +10,7 @@ class Layer {
   virtual void on_attach() {}
   virtual void on_update(float dt) {}
   virtual void on_event(const WindowEvent& event) {}
+  virtual void on_gui() {}
 };
 
 class LayerStack {

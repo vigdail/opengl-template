@@ -2,6 +2,7 @@
 
 #include "layer.h"
 #include "window.h"
+#include "gui_layer.h"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -27,4 +28,5 @@ class Application {
  private:
   Window window_;
   LayerStack layers_;
+  std::unique_ptr<GuiLayer> gui_layer_{};
 };

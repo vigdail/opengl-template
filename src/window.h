@@ -67,6 +67,7 @@ class Window final {
   void hide_cursor();
   void show_cursor();
   void toggle_cursor();
+  GLFWwindow* get_native() const;
   virtual ~Window();
 
  private:

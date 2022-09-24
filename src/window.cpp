@@ -91,3 +91,6 @@ void Window::toggle_cursor() {
     hide_cursor();
   }
 }
+GLFWwindow* Window::get_native() const {
+  return window_;
+}
