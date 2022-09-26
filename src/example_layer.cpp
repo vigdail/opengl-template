@@ -7,11 +7,11 @@ ExampleLayer::ExampleLayer(float camera_aspect_ratio) : camera_{glm::perspective
 }
 
 void ExampleLayer::on_attach() {
-  const auto camera_position = glm::vec3(0.0f, 0.0f, 3.0f);
+  const auto camera_position = glm::vec3(0.0f, 1.0f, 3.0f);
   const auto target_position = glm::vec3(0.0f, 0.0f, 0.0f);
   const auto dir = glm::normalize(camera_position - target_position);
   camera_.set_position(camera_position);
-  camera_.set_rotation(glm::rotation(glm::vec3(0.0f, 0.0f, 1.0f), dir));
+  camera_.set_rotation(glm::rotation(dir, glm::vec3(0.0f, 0.0f, 1.0f)));
 
   vao_->bind();
   texture_->bind_unit(0);
