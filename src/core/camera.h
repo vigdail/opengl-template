@@ -1,7 +1,7 @@
 #pragma once
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 class Camera {
  public:
@@ -29,6 +29,7 @@ class FpsCameraController {
     bool left;
     bool right;
     glm::vec2 mouse_position;
+    bool mouse_down;
   };
   explicit FpsCameraController(Camera* camera) : camera_{camera} {}
   void update(float delta_time);

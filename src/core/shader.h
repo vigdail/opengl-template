@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gl/program.hpp>
+#include "gl/program.hpp"
 
 #include <memory>
 

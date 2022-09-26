@@ -1,4 +1,5 @@
 #include "application.h"
+
 void debug_message_callback(const gl::debug_log& log) {
   std::cerr << log.message << std::endl;
 }
@@ -14,7 +15,7 @@ Application::Application(std::string_view name, uint32_t width, uint32_t height)
                             GL_DEBUG_SEVERITY_NOTIFICATION, false);
 #endif
 
-  window_.hide_cursor();
+//  window_.hide_cursor();
   window_.set_event_handler([this](const WindowEvent& event) {
     auto key_handler = Handler<KeyEvent, WindowEvent>([&](const auto& event) {
       bool is_pressed = event.action == KeyAction::Pressed;
@@ -27,6 +28,8 @@ Application::Application(std::string_view name, uint32_t width, uint32_t height)
       layer->on_event(event);
     }
   });
+
+  gui_layer_ = std::make_unique<GuiLayer>(window_.get_native());
 }
 
 void Application::run() {
@@ -41,5 +44,12 @@ void Application::run() {
     for (const auto& layer: layers_) {
       layer->on_update(delta_seconds);
     }
+
+    gui_layer_->on_update(delta_seconds);
+    gui_layer_->begin();
+    for (const auto& layer: layers_) {
+      layer->on_gui();
+    }
+    gui_layer_->end();
   }
 }

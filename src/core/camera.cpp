@@ -35,7 +35,7 @@ const glm::quat& Camera::get_rotation() const {
 }
 
 void FpsCameraController::update(float delta_time) {
-  if (!is_first_) {
+  if (!is_first_ && input.mouse_down) {
     const auto mouse_delta = input.mouse_position - prev_mouse_position_;
 
     const float mouse_speed = 0.1f * delta_time;

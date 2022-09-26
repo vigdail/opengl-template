@@ -38,5 +38,15 @@ FetchContent_MakeAvailable(glm)
 
 include_directories(vendor/stb)
 
-add_executable(${EXECUTABLE_NAME} src/main.cpp src/camera.cpp src/camera.h src/shader.h src/shader.cpp src/texture.h src/texture.cpp src/window.cpp src/window.h src/application.cpp src/application.h src/layer.cpp src/layer.h)
-target_link_libraries(${EXECUTABLE_NAME} glfw gl glm libglew_static)
+set(IMGUI_WITH_BACKEND TRUE)
+set(IMGUI_BACKEND_GLFW TRUE)
+set(IMGUI_GLFW_INCLUDE_PATH ${glfw_SOURCE_DIR}/include)
+FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/vigdail/imgui-cmake.git
+        GIT_TAG master
+)
+FetchContent_MakeAvailable(imgui)
+
+add_executable(${EXECUTABLE_NAME} src/main.cpp src/core/camera.cpp src/core/camera.h src/core/shader.h src/core/shader.cpp src/core/texture.h src/core/texture.cpp src/core/window.cpp src/core/window.h src/core/application.cpp src/core/application.h src/core/layer.cpp src/core/layer.h src/core/gui_layer.cpp src/core/gui_layer.h src/util/fps_counter.cpp src/util/fps_counter.h src/example_layer.cpp src/example_layer.h)
+target_link_libraries(${EXECUTABLE_NAME} glfw gl glm libglew_static imgui)
