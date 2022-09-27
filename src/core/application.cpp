@@ -23,7 +23,12 @@ Application::Application(std::string_view name, uint32_t width, uint32_t height)
         window_.close();
       }
     });
+    auto resize_handler = Handler<WindowResizeEvent, WindowEvent>([&](const auto& event) {
+      gl::set_viewport({0, 0}, {static_cast<int>(event.width), static_cast<int>(event.height)});
+    });
+
     key_handler(event);
+    resize_handler(event);
     for (const auto& layer: layers_) {
       layer->on_event(event);
     }
