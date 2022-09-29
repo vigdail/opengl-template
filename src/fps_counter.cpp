@@ -1,4 +1,4 @@
-#include "fps_counter.h"
+#include "../include/vgl/fps_counter.h"
 bool FpsCounter::tick(float delta_seconds, bool frame_rendered) {
   if (frame_rendered) {
     num_frames_++;

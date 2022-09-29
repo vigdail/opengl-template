@@ -1,4 +1,4 @@
-#include "shader.h"
+#include "../include/vgl/shader.h"
 
 std::shared_ptr<gl::program> load_shader(const char* vert_path, const char* frag_path) {
   gl::shader vert(GL_VERTEX_SHADER);

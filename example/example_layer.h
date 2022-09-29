@@ -1,19 +1,19 @@
 #pragma once
 
-#include "core/camera.h"
-#include "core/layer.h"
-#include "core/shader.h"
-#include "core/texture.h"
-#include "core/window.h"
-#include "util/fps_counter.h"
+#include "../include/vgl/camera.h"
+#include "../include/vgl/fps_counter.h"
+#include "../include/vgl/layer.h"
+#include "../include/vgl/shader.h"
+#include "../include/vgl/texture.h"
+#include "../include/vgl/window.h"
 
-#include <imgui.h>
-#include <GLFW/glfw3.h>
-#include <gl/all.hpp>
-#include <gl/auxiliary/glm_uniforms.hpp>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include "GLFW/glfw3.h"
+#include "gl/all.hpp"
+#include "gl/auxiliary/glm_uniforms.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/quaternion.hpp"
+#include "imgui.h"
 
 #include <memory>
 

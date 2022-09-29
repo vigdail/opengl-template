@@ -1,6 +1,6 @@
 #include "example_layer.h"
 
-#include "core/application.h"
+#include "../include/vgl/application.h"
 
 int main() {
   Application app("OpenGL", 1280, 720);

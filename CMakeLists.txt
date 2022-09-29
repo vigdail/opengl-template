@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
-set(PROJECT_NAME opengl_template)
-set(EXECUTABLE_NAME opengl_template)
+set(PROJECT_NAME vgl)
+set(LIB_NAME vgl)
 
 project(${PROJECT_NAME})
 
@@ -48,5 +48,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-add_executable(${EXECUTABLE_NAME} src/main.cpp src/core/camera.cpp src/core/camera.h src/core/shader.h src/core/shader.cpp src/core/texture.h src/core/texture.cpp src/core/window.cpp src/core/window.h src/core/application.cpp src/core/application.h src/core/layer.cpp src/core/layer.h src/core/gui_layer.cpp src/core/gui_layer.h src/util/fps_counter.cpp src/util/fps_counter.h src/example_layer.cpp src/example_layer.h)
-target_link_libraries(${EXECUTABLE_NAME} glfw gl glm libglew_static imgui)
+add_library(${LIB_NAME} src/camera.cpp include/vgl/camera.h include/vgl/shader.h src/shader.cpp include/vgl/texture.h src/texture.cpp src/window.cpp include/vgl/window.h src/application.cpp include/vgl/application.h src/layer.cpp include/vgl/layer.h src/gui_layer.cpp include/vgl/gui_layer.h src/fps_counter.cpp include/vgl/fps_counter.h)
+target_link_libraries(${LIB_NAME} glfw gl glm libglew_static imgui)
+
+if (VGL_BUILD_EXAMPLES)
+    add_executable(example example/main.cpp example/example_layer.cpp example/example_layer.h)
+    target_link_libraries(example ${LIB_NAME})
+endif ()

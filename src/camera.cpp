@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "../include/vgl/camera.h"
 
 Camera::Camera(const glm::mat4& projection) : projection_{projection} {
 }

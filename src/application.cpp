@@ -1,4 +1,4 @@
-#include "application.h"
+#include "../include/vgl/application.h"
 
 void debug_message_callback(const gl::debug_log& log) {
   std::cerr << log.message << std::endl;

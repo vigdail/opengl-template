@@ -1,4 +1,4 @@
-#include "layer.h"
+#include "../include/vgl/layer.h"
 
 void LayerStack::push(LayerStack::LayerPtr layer) {
   layer->on_attach();
